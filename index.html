@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios</title>
+</head>
+<body>
+    <h2>Lista de Usuarios</h2>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Acciones</th>
+        </tr>
+        <tbody id="usuarios_tbody"></tbody>
+    </table>
+    <script>
+        let usuarios = [];
+
+        async function fetch_usuarios() {
+            let usuariosGuardados = localStorage.getItem("usuarios");
+            if (usuariosGuardados) {
+                usuarios = JSON.parse(usuariosGuardados); 
+            } else {
+                let response = await fetch("https://jsonplaceholder.typicode.com/users");
+                usuarios = await response.json(); 
+                guardarEnLocalStorage();
+            }
+            render();
+        }
+
+        function guardarEnLocalStorage() {
+            localStorage.setItem("usuarios", JSON.stringify(usuarios)); 
+        }
+
+        function render() {
+            let usuarios_tbody = document.getElementById("usuarios_tbody");
+            usuarios_tbody.innerHTML = ""; 
+
+            usuarios.forEach((u, index) => {
+                let tr = document.createElement("tr");
+
+                let td_id = document.createElement("td");
+                td_id.textContent = u.id;
+
+                let td_name = document.createElement("td");
+                let input = document.createElement("input");
+                input.type = "text";
+                input.value = u.name;
+                input.addEventListener("input", (e) => editarUsuario(index, e.target.value));
+                td_name.appendChild(input);
+
+                let td_actions = document.createElement("td");
+                let btnEliminar = document.createElement("button");
+                btnEliminar.textContent = "Eliminar";
+                btnEliminar.onclick = () => eliminarUsuario(index);
+                td_actions.appendChild(btnEliminar);
+
+                tr.appendChild(td_id);
+                tr.appendChild(td_name);
+                tr.appendChild(td_actions);
+                usuarios_tbody.appendChild(tr);
+            });
+        }
+
+        function editarUsuario(index, nuevoNombre) {
+            usuarios[index].name = nuevoNombre; 
+            guardarEnLocalStorage(); 
+        }
+
+        function eliminarUsuario(index) {
+            usuarios.splice(index, 1); 
+            guardarEnLocalStorage(); 
+            render(); 
+        }
+
+        document.addEventListener("DOMContentLoaded", fetch_usuarios);
+    </script>
+</body>
+</html>
